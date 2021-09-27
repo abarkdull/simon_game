@@ -3,6 +3,8 @@
 var buttonColors = ["red", "blue", "green", "yellow"];
 var gamePattern = [];
 var userClickedPattern = [];
+var level = 0;
+var gameStarted = false;
 
 // play button audio on click
 function playAudio(btnColor) {
@@ -13,6 +15,8 @@ function playAudio(btnColor) {
 // get next color of sequence
 function nextSequence() {
 
+    level++;
+    $('h1').text('Level ' + level);
     var randomNumber = Math.floor(Math.random() * 3);
     var randomChosenColor = buttonColors[randomNumber];
     gamePattern.push(randomChosenColor);
@@ -20,11 +24,6 @@ function nextSequence() {
     $('#' + randomChosenColor).fadeOut(100).fadeIn(100);
     playAudio(randomChosenColor);
 }
-
-var randomChosenColor = buttonColors[nextSequence()];
-gamePattern.push(randomChosenColor);
-
-var randomButton = $('#' + randomChosenColor);
 
 // on button click: 
 //   1) animate button
@@ -34,10 +33,45 @@ $('.btn').click(function () {
     userClickedPattern.push(userChosenColor);
     playAudio(userChosenColor);
     animatePress(userChosenColor);
+    checkAnswer(userClickedPattern.length - 1);
 });
+
+function checkAnswer(currentLevel) {
+    if (userClickedPattern[currentLevel] === gamePattern[currentLevel]) {
+        console.log('success');
+        
+        // if sequence (level) is finished
+        if (currentLevel == gamePattern.length - 1) {
+            setTimeout(function () {
+                nextSequence();
+            }, 1000);
+            userClickedPattern = [];
+        }
+    } else {
+        playAudio('wrong');
+        $('body').addClass('game-over');
+        setTimeout(function () {$('body').removeClass('game-over')}, 200);
+        $('#level-title').text('Game Over, Press Any Key to Restart');
+        startOver();
+    }
+}
+
+function startOver() {
+    level = 0;
+    gamePattern = [];
+    gameStarted = false;
+    userClickedPattern = [];
+}
 
 function animatePress(currentColor) {
     $('#' + currentColor).addClass('pressed');
     setTimeout(function() { $('#' + currentColor).removeClass('pressed')
     }, 100);
 }
+
+$(document).keydown(function() {
+    if (!gameStarted) {
+        gameStarted = true;
+        nextSequence();
+    }
+})
